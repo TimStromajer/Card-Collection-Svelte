@@ -1,0 +1,3 @@
+[build]
+  publish = "dist/Card-Collection-Svelte"
+  functions = "functions"

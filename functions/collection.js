@@ -1,8 +1,9 @@
-const { MongoClient } = require("mongodb");
+import { MongoClient } from "mongodb";
+
 const uri = "mongodb+srv://slotim:Geslo123@cardcluster.gznxz8t.mongodb.net/?retryWrites=true&w=majority";
 const mongoClient = new MongoClient(uri);
 
-const handler = async (event) => {
+export async function handler(event, context) {
   // GET COLLECTION
   if (event.httpMethod == "GET") {
     const clientPromise = await mongoClient.connect();
@@ -48,5 +49,3 @@ const handler = async (event) => {
     }
   }
 }
-
-module.exports = { handler }

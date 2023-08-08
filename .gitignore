@@ -399,3 +399,6 @@ FodyWeavers.xsd
 
 # Netlify
 *.netlify
+
+# Svelte
+.svelte-kit

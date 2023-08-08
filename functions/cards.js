@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 
-const uri = "mongodb+srv://slotim:Geslo123@cardcluster.gznxz8t.mongodb.net/?retryWrites=true&w=majority";
+const uri = "mongodb+srv://slotim:Geslo123@cluster0.w0milto.mongodb.net/?retryWrites=true&w=majority";
 const mongoClient = new MongoClient(uri);
 
 export async function handler(event, context) {
@@ -28,6 +28,7 @@ export async function handler(event, context) {
       else if (event.queryStringParameters.name != null) {
         const cursor = await collection.findOne({name: event.queryStringParameters.name, setCode: event.queryStringParameters.setCode})
         var card = await cursor;
+        console.log(event.queryStringParameters.name, event.queryStringParameters.setCode)
         return {
           statusCode: 200,
           headers: {
@@ -53,9 +54,8 @@ export async function handler(event, context) {
       var exists = await collection.findOne({scryfallId: reqData.card.scryfallId})
       if (exists == null) {
         console.log("Adding new card " + reqData.card.name)
-        await collection.insertOne({
-          card: reqData.card.name
-        })
+        console.log(reqData.card)
+        await collection.insertOne(reqData.card)
         return {
           statusCode: 200,
           headers: {

@@ -7,6 +7,7 @@
   import { getCardData } from "../api/scryfallApi";
 	import Dropdown from "./Dropdown.svelte";
 	import Pagination from "./Pagination.svelte";
+  import { getCardByNameSet } from "../lib/dbService";
 
   let screenSize;
 
@@ -54,7 +55,9 @@
     $deckStore = $deckStore
   }
 
-  function addCardToCollection(card) {
+  async function addCardToCollection(card) {
+    let res = await getCardByNameSet(card.name, card.setCode)
+    
     let found = $collection.find(cardInC => card.scryfallId == cardInC.scryfallId)
     if (found) {
       found.amount += 1

@@ -39,7 +39,7 @@ export async function handler(event, context) {
           body: JSON.stringify(card)
         }
       }
-    } catch (err) {
+    } catch (error) {
       return { statusCode: 501, body: error.toString() }
     } finally {
       (await clientPromise).close()

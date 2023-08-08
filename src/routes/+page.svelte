@@ -8,6 +8,7 @@
   import { Deck } from "$lib/deck";
   import { collection } from "../stores/collection";
   import { collectionData } from "../database/database";
+  import { getUser } from "$lib/dbService";
 
   let mouseCoordinates = {x: null, y: null};
 
@@ -19,6 +20,7 @@
     window.addEventListener('mousemove', handleMouseMove);
 
     $collection = collectionData
+
   });
 
   function handleMouseMove(event) {

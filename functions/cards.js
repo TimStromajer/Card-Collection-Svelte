@@ -26,9 +26,9 @@ export async function handler(event, context) {
       }
       // if looking by name and set code
       else if (event.queryStringParameters.name != null) {
-        const cursor = await collection.findOne({name: event.queryStringParameters.name, setCode: event.queryStringParameters.setCode})
+        const cursor = await collection.findOne({name: {$regex: event.queryStringParameters.name+".*"}, setCode: event.queryStringParameters.setCode.toLowerCase()})
         var card = await cursor;
-        console.log(event.queryStringParameters.name, event.queryStringParameters.setCode)
+        console.log(card)
         return {
           statusCode: 200,
           headers: {
@@ -51,11 +51,10 @@ export async function handler(event, context) {
     try {
       const database = (await clientPromise).db("Card-Collection-Svelte");
       const collection = await database.collection("cards");
-      var exists = await collection.findOne({scryfallId: reqData.card.scryfallId})
+      var exists = await collection.findOne({scryfallId: reqData.scryfallId})
       if (exists == null) {
-        console.log("Adding new card " + reqData.card.name)
-        console.log(reqData.card)
-        await collection.insertOne(reqData.card)
+        console.log("Adding new card " + reqData.name)
+        await collection.insertOne(reqData)
         return {
           statusCode: 200,
           headers: {

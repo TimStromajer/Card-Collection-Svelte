@@ -7,9 +7,14 @@
   import { getCardData } from "../api/scryfallApi";
 	import Dropdown from "./Dropdown.svelte";
 	import Pagination from "./Pagination.svelte";
-  import { getCardByNameSet } from "../lib/dbService";
+  import { Card } from "$lib/card";
+
+  import { getCardByNameSet, addCardDb, addToCollection, getCollection } from "../database/dbService";
+  import { resetCollection } from "../database/database";
 
   let screenSize;
+
+  let username = "slotim"
 
   let cardsPerPage = 12;
   let currentPage = 0;
@@ -56,8 +61,6 @@
   }
 
   async function addCardToCollection(card) {
-    let res = await getCardByNameSet(card.name, card.setCode)
-    
     let found = $collection.find(cardInC => card.scryfallId == cardInC.scryfallId)
     if (found) {
       found.amount += 1
@@ -66,21 +69,50 @@
       $collection.push(card)
       $collection = $collection
     }
-    
   }
 
   async function readFile() {
     let csvString = await files[0].text()
     let data = await parseCSV(csvString)
-    data.forEach(row => {
-      getCardData(row[3], row[4]).then(card => {
-        if (card.name == "Error") {
-          console.log(card.message)
+    let cardIds = []
+    for await (let row of data) {
+      let name = row[3]
+      let setCode = row[4]
+      // check db for card info
+      await getCardByNameSet(name, setCode).then(async card => {
+        // get data from scryfall
+        if (card == null) {
+          await getCardData(name, setCode).then(async cardScry => {
+            if (cardScry.name == "Error") {
+              console.log(cardScry.message)
+            } else {
+              cardIds.push(cardScry.scryfallId)
+              await addCardDb(cardScry)
+              //addCardToCollection(cardScry)
+            }
+          })
         } else {
-          addCardToCollection(card)
+          cardIds.push(card.scryfallId)
         }
       })
-    });
+    };
+    await addToCollection(username, cardIds)
+    resetCol(username)
+  }
+
+  function resetCol(username) {
+    $collection = []
+    getCollection(username).then(col => {
+      if (col) {
+        for (let card of col.cards) {
+          $collection.push(new Card(card.name, card.setCode, card.collectorCode, card.printing,
+            card.scryfallId, card.price, card.imgSUrl,
+            card.imgNUrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText))
+          $collection = $collection
+        }
+        return collection
+      }
+    })
   }
 
   async function parseCSV(csvString) {

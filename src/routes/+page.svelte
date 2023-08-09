@@ -7,8 +7,10 @@
   import { deckStore } from "../stores/deckStore";
   import { Deck } from "$lib/deck";
   import { collection } from "../stores/collection";
-  import { collectionData } from "../database/database";
-  import { getUser } from "$lib/dbService";
+  import { collectionData,resetCollection } from "../database/database";
+
+  import { getCollection } from "../database/dbService";
+	import { Card } from "$lib/card";
 
   let mouseCoordinates = {x: null, y: null};
 
@@ -20,7 +22,18 @@
     window.addEventListener('mousemove', handleMouseMove);
 
     $collection = collectionData
-
+    // $collection = resetCollection("slotim")
+    getCollection("slotim").then(col => {
+      if (col) {
+        for (let card of col.cards) {
+          $collection.push(new Card(card.name, card.setCode, card.collectorCode, card.printing,
+            card.scryfallId, card.price, card.imgSUrl,
+            card.imgNUrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText))
+          $collection = $collection
+        }
+        return collection
+      }
+    })
   });
 
   function handleMouseMove(event) {

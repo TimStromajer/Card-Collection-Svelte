@@ -2,7 +2,7 @@
 import { Card } from "$lib/card"
 
 export function getCardData(cardNameOrig, setCode) {
-  cardName = cardNameOrig.replaceAll(" ", '+')
+  let cardName = cardNameOrig.replaceAll(" ", '+')
   cardName = cardName.replaceAll(",", '%2C')
   cardName = cardName.replaceAll("'", '%27')
   let url = "https://api.scryfall.com/cards/named?exact=" + cardName

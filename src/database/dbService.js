@@ -31,11 +31,14 @@ export function addUser(username) {
 //
 
 export function getCardByNameSet(name, setCode) {
+    let cardName = name.replaceAll(" ", '+')
+    cardName = cardName.replaceAll(",", '%2C')
+    cardName = cardName.replaceAll("'", '%27')
     let url = PUBLIC_FUNCTIONS_URL + "/cards?name=" + name + "&setCode=" + setCode
     return fetch(url)
         .then(response => response.json())
         .then(data => {
-            console.log(data)
+            return data
         })
 }
 
@@ -44,20 +47,21 @@ export function getCardByScryfallId(scryfallId) {
         return fetch(url)
         .then(response => response.json())
         .then(data => {
-            console.log(data)
+            return data
         })
 }
 
-export function addCard(card) {
+export function addCardDb(card) {
     let url = PUBLIC_FUNCTIONS_URL + "/cards"
     return fetch(url, {
             method: "POST",
+            mode: "cors",
             headers: {"Content-Type": "application/json"},
-            body: card
+            body: JSON.stringify(card)
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data)
+            return data
         })
 }
 
@@ -67,10 +71,10 @@ export function addCard(card) {
 
 export function getCollection(username) {
     let url = PUBLIC_FUNCTIONS_URL + "/collection?username=" + username
-    return fetch(url)
+    return fetch(url, {mode: "cors"})
         .then(response => response.json())
         .then(data => {
-            console.log(data)
+            return data
         })
 }
 
@@ -78,11 +82,12 @@ export function addToCollection(username, cards) {
     let url = PUBLIC_FUNCTIONS_URL + "/collection"
     return fetch(url, {
             method: "POST",
+            mode: "cors",
             headers: {"Content-Type": "application/json"},
-            body: {"username": username, "cards": cards}
+            body: JSON.stringify({"username": username, "cards": cards})
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data)
+            return data
         })
 }

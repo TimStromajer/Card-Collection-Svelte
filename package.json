@@ -27,6 +27,7 @@
 		"mongodb": "^5.7.0",
 		"neo4j-driver": "^5.10.0",
 		"netlify-cli": "^15.10.0",
-		"papaparse": "^5.4.1"
+		"papaparse": "^5.4.1",
+		"saslprep": "^1.0.3"
 	}
 }

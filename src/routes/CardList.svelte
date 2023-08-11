@@ -39,7 +39,9 @@
   $: screenSize, screenSizeChange()
 
   function screenSizeChange() {
-    if (screenSize >=  1330) {
+    if (screenSize >=  1495) {
+      cardsPerPage = 18
+    } else if (screenSize >=  1330) {
       cardsPerPage = 16
     } else if (screenSize >= 1170) {
       cardsPerPage = 14

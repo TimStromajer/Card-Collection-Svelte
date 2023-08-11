@@ -101,7 +101,7 @@
 </script>
 
 <div>
-  <h1>My collection</h1>
+  <br/>
 
   <CardList></CardList>
 

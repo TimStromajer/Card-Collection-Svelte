@@ -1,5 +1,5 @@
 <nav>
-  <a href="/">collection</a>
+  <a href="/">My collection</a>
 </nav>
 
 <slot />

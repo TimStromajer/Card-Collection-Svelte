@@ -13,15 +13,23 @@ export async function handler(event, context) {
       const cursor = await collection.aggregate([
         { $match: {username: event.queryStringParameters.username}},
         { $limit: 1 },
+        { $project: {_id: 0, cards: 1}},
+        { $unwind: { path: "$cards", preserveNullAndEmptyArrays: true }},
+        { $group: {_id: "$cards", count: {$count: {}}} },
         { $lookup: {
           from: "cards",
-          localField: "cards",
+          localField: "_id",
           foreignField: "scryfallId",
-          as: "cards" 
-        }}
+          as: "cardInfo"
+        }},
+        {$project: {cardInfo: {$first: "$cardInfo"}, amount: "$count"}}
       ])
 
-      const cards = await cursor.next()
+      let cards = []
+      while (await cursor.hasNext()) {
+        cards.push(await cursor.next())
+      }
+      
       return {
         statusCode: 200,
         headers: {

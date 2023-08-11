@@ -28,7 +28,6 @@ export async function handler(event, context) {
       else if (event.queryStringParameters.name != null) {
         const cursor = await collection.findOne({name: {$regex: event.queryStringParameters.name+".*"}, setCode: event.queryStringParameters.setCode.toLowerCase()})
         var card = await cursor;
-        console.log(card)
         return {
           statusCode: 200,
           headers: {
@@ -53,7 +52,6 @@ export async function handler(event, context) {
       const collection = await database.collection("cards");
       var exists = await collection.findOne({scryfallId: reqData.scryfallId})
       if (exists == null) {
-        console.log("Adding new card " + reqData.name)
         await collection.insertOne(reqData)
         return {
           statusCode: 200,
@@ -65,7 +63,6 @@ export async function handler(event, context) {
           body: JSON.stringify({message: "added :)"})
         }
       } else {
-        console.log("Card already exists.")
         return {
           statusCode: 200,
           headers: {

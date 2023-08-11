@@ -10,7 +10,6 @@
   import { Card } from "$lib/card";
 
   import { getCardByNameSet, addCardDb, addToCollection, getCollection } from "../database/dbService";
-  import { resetCollection } from "../database/database";
 
   let screenSize;
 
@@ -60,24 +59,19 @@
     $deckStore = $deckStore
   }
 
-  async function addCardToCollection(card) {
-    let found = $collection.find(cardInC => card.scryfallId == cardInC.scryfallId)
-    if (found) {
-      found.amount += 1
-      $collection = $collection
-    } else {
-      $collection.push(card)
-      $collection = $collection
-    }
-  }
-
   async function readFile() {
     let csvString = await files[0].text()
     let data = await parseCSV(csvString)
     let cardIds = []
+    let index = 1
     for await (let row of data) {
+      console.log("working on card " + index + "/" + data.length)
+      index += 1
+      let amount = row[1]
       let name = row[3]
       let setCode = row[4]
+      if (!name || !setCode) continue
+      if (setCode.length == 4 && setCode[0] == "V") setCode = setCode.substring(1)
       // check db for card info
       await getCardByNameSet(name, setCode).then(async card => {
         // get data from scryfall
@@ -86,13 +80,17 @@
             if (cardScry.name == "Error") {
               console.log(cardScry.message)
             } else {
-              cardIds.push(cardScry.scryfallId)
+              for (let i = 0; i<amount; i++) {
+                cardIds.push(cardScry.scryfallId)
+              }
               await addCardDb(cardScry)
               //addCardToCollection(cardScry)
             }
           })
         } else {
-          cardIds.push(card.scryfallId)
+          for (let i = 0; i<amount; i++) {
+            cardIds.push(card.scryfallId)
+          }
         }
       })
     };
@@ -100,17 +98,69 @@
     resetCol(username)
   }
 
-  function resetCol(username) {
+  export function resetCol(username) {
     $collection = []
+    var itemsProcessed = 0;
     getCollection(username).then(col => {
       if (col) {
-        for (let card of col.cards) {
+        col.forEach(item => {
+          let card = item.cardInfo
           $collection.push(new Card(card.name, card.setCode, card.collectorCode, card.printing,
             card.scryfallId, card.price, card.imgSUrl,
-            card.imgNUrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText))
-          $collection = $collection
-        }
+            card.imgNUrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText, item.amount))
+          itemsProcessed++;
+          if(itemsProcessed === col.length) {
+            sortCards()
+            $collection = $collection
+          }
+        });
         return collection
+      }
+    })
+  }
+
+  function sortCards() {
+    $collection.sort((a, b) => {
+      // sort by color identity
+      if (a.colorIdentity.length < b.colorIdentity.length) {
+        return -1
+      }
+      else if (a.colorIdentity.length > b.colorIdentity.length) {
+        return 1;
+      }
+      // sort by color
+      else if (a.colorIdentity.includes("B") && !b.colorIdentity.includes("B")) {
+        return -1
+      }
+      else if (!a.colorIdentity.includes("B") && b.colorIdentity.includes("B")) {
+        return 1
+      }
+      else if (a.colorIdentity.includes("G") && !b.colorIdentity.includes("G")) {
+        return -1
+      }
+      else if (!a.colorIdentity.includes("G") && b.colorIdentity.includes("G")) {
+        return 1
+      }
+      else if (a.colorIdentity.includes("R") && !b.colorIdentity.includes("R")) {
+        return -1
+      }
+      else if (!a.colorIdentity.includes("R") && b.colorIdentity.includes("R")) {
+        return 1
+      }
+      else if (a.colorIdentity.includes("U") && !b.colorIdentity.includes("U")) {
+        return -1
+      }
+      else if (!a.colorIdentity.includes("U") && b.colorIdentity.includes("U")) {
+        return 1
+      }
+      // sort by cmc
+      else if (a.cmc < b.cmc) {
+        return -1
+      } else if (a.cmc > b.cmc) {
+        return 1
+      }
+      else {
+        return 1
       }
     })
   }
@@ -199,7 +249,7 @@
 <Pagination pageSize={cardsPerPage} count={filteredCards.length} on:pageChange={onPageChange} bind:page={currentPage}></Pagination>
 
 <span>Upload cards to the collection: </span>
-<input type="file" bind:files class="input-files">
+<input type="file" bind:files class="input-files" disabled>
 {#if files && files[0]}
   <button on:click={() => readFile()}>Upload</button>
 {/if}

@@ -12,6 +12,7 @@
   let extendEdgeClicked = false
   let mouseExtendStartPos = 0
   let extendStartPos = 40;
+  let mouseOverEdgeBool = false
 
   $: mousePosition, expandMenu();
 
@@ -38,6 +39,11 @@
       extendStartPos = 600;
     }
   }
+  function focusInEdge(e) {
+  }
+  function focusOutEdge(e) {
+    mouseUpEdge(e)
+  }
 
   function saveDeck() {
     let text = $deckStore.toString()
@@ -56,7 +62,7 @@
 </script>
 
 <div class="fixed-menu" style="--menuHeight: {menuHeight}px">
-  <div role="grid" tabindex="0" class="fixed-card-edge" on:mousedown={mouseDownEdge} on:mouseup={mouseUpEdge}></div>
+  <div role="grid" tabindex="0" class="fixed-card-edge" on:mousedown={mouseDownEdge} on:mouseup={mouseUpEdge} on:focusin={focusInEdge} on:focusout={focusOutEdge}></div>
   <div class="btns">
     <button class="save-btn" on:click={saveDeck}>Save</button>
     <button class="load-btn" on:click={loadDeck}>Load</button>

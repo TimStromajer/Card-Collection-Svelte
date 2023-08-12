@@ -35,11 +35,15 @@
   let files;
   let filterText;
 
-  // 1330, 1170, 1005, 840, 690, 530, 365
+  // 1825, 1660, 1495, 1330, 1170, 1005, 840, 690, 530, 365
   $: screenSize, screenSizeChange()
 
   function screenSizeChange() {
-    if (screenSize >=  1495) {
+    if (screenSize >=  1825) {
+      cardsPerPage = 22
+    } else if (screenSize >=  1660) {
+      cardsPerPage = 20
+    } else if (screenSize >=  1495) {
       cardsPerPage = 18
     } else if (screenSize >=  1330) {
       cardsPerPage = 16
@@ -109,7 +113,7 @@
           let card = item.cardInfo
           $collection.push(new Card(card.name, card.setCode, card.collectorCode, card.printing,
             card.scryfallId, card.price, card.imgSUrl,
-            card.imgNUrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText, item.amount))
+            card.imgNUsrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText, item.amount))
           itemsProcessed++;
           if(itemsProcessed === col.length) {
             sortCards()
@@ -240,7 +244,7 @@
     {#each shownCards as card}
       <div class="card">
         <button class="add-card-btn" on:click={() => addCard(card)}>
-          <img src="{card.imgSUrl}" alt="{card.name}"/>
+          <img src="{card.imgNUsrl}" alt="{card.name}"/>
           <div>{card.amount}</div>
         </button>
       </div>
@@ -264,7 +268,7 @@
   }
   .card {
     height: 13em;
-    width: auto;
+    width: 148px;
     margin-left: 0.5em;
     margin-right: 0.5em;
     margin-bottom: 1.4em;

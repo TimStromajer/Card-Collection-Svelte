@@ -37,7 +37,7 @@
           let card = item.cardInfo
           $collection.push(new Card(card.name, card.setCode, card.collectorCode, card.printing,
             card.scryfallId, card.price, card.imgSUrl,
-            card.imgNUrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText, item.amount))
+            card.imgNUsrl, card.imgLUrl, card.colorIdentity, card.cmc, card.manaCost, card.rarity, card.typeLine, card.oracleText, item.amount))
           itemsProcessed++;
           if(itemsProcessed === col.length) {
             sortCards()

@@ -42,6 +42,18 @@ export function getCardByNameSet(name, setCode) {
         })
 }
 
+export function getCardByName(name) {
+    let cardName = name.replaceAll(" ", '+')
+    cardName = cardName.replaceAll(",", '%2C')
+    cardName = cardName.replaceAll("'", '%27')
+    let url = PUBLIC_FUNCTIONS_URL + "/cards?name=" + name
+    return fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
 export function getCardByScryfallId(scryfallId) {
     let url = PUBLIC_FUNCTIONS_URL + "/cards?scryfallId=" + scryfallId
         return fetch(url)

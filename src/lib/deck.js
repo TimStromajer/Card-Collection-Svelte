@@ -24,7 +24,7 @@ export class Deck {
     } else if (card["cmc"] < 7) {
       this.fields[card["cmc"] + 1].cards.push(card)
     } else {
-      this.fields[-1].cards.push(card)
+      this.fields[this.fields.length-1].cards.push(card)
     }
   }
 

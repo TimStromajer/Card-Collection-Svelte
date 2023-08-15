@@ -4,6 +4,7 @@
   import CardColumns from "./CardColumns.svelte";
   import { deckStore } from '../stores/deckStore';
 	import { Deck } from "$lib/deck";
+  import { getCardByNameSet, addCardDb, addToCollection, getCollection, getCardByName } from "../database/dbService";
 
   export let mousePosition;
 
@@ -14,7 +15,50 @@
   let extendStartPos = 40;
   let mouseOverEdgeBool = false
 
+  let files;
+
   $: mousePosition, expandMenu();
+
+  async function fileUpload() {
+    let fileText = await files[0].text()
+    fileText = await fileText.split("\n")
+
+    $deckStore = new Deck()
+
+    for await (let row of fileText) {
+      if (row.length == 0 || row.startsWith("Deck") || row.startsWith("Sideboard")) {
+        continue
+      }
+      let tokens = row.substring(row.indexOf(" ") + 1)
+      let name
+      let setCode
+      if (tokens.indexOf("(") > 0) {
+        name = tokens.substring(0, tokens.indexOf("(") - 1)
+        setCode = tokens.substring(tokens.indexOf("(")+1, tokens.indexOf(")"))
+      } else {
+        name = tokens.substring(" " + 1)
+      }
+
+      if (setCode) {
+        await getCardByNameSet(name, setCode).then(async card => {
+          if (card == null) {
+            console.log(name + " does not exist")
+          } else {
+            $deckStore.addCard(card)
+          }
+        })
+      } else {
+        await getCardByName(name).then(async card => {
+          if (card == null) {
+            console.log(name + " does not exist")
+          } else {
+            $deckStore.addCard(card)
+          }
+        })
+      }
+      $deckStore = $deckStore
+    }
+  }
 
   function expandMenu() {
     if (extendEdgeClicked) {
@@ -65,7 +109,8 @@
   <div role="grid" tabindex="0" class="fixed-card-edge" on:mousedown={mouseDownEdge} on:mouseup={mouseUpEdge} on:focusin={focusInEdge} on:focusout={focusOutEdge}></div>
   <div class="btns">
     <button class="save-btn" on:click={saveDeck}>Save</button>
-    <button class="load-btn" on:click={loadDeck}>Load</button>
+    <button class="load-btn" onclick="document.getElementById('loadBtn').click();">Load</button>
+    <input id="loadBtn" type="file" bind:files on:change={fileUpload} style="display: none;">
     <button class="collapse-fixed-card-btn" on:click={collapseFixedMenu}>-</button>
   </div>
   <div class="content">

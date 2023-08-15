@@ -25,8 +25,22 @@ export async function handler(event, context) {
         }
       }
       // if looking by name and set code
-      else if (event.queryStringParameters.name != null) {
+      else if (event.queryStringParameters.name != null && event.queryStringParameters.setCode != null) {
         const cursor = await collection.findOne({name: {$regex: event.queryStringParameters.name+".*"}, setCode: event.queryStringParameters.setCode.toLowerCase()})
+        var card = await cursor;
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*"
+          },
+          body: JSON.stringify(card)
+        }
+      }
+      // if looking by only name
+      else if (event.queryStringParameters.name != null) {
+        const cursor = await collection.findOne({name: {$regex: event.queryStringParameters.name+".*"}})
         var card = await cursor;
         return {
           statusCode: 200,

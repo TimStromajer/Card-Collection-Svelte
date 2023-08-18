@@ -22,7 +22,7 @@
   )
 
   onMount(() => {
-    window.addEventListener('mousemove', handleMouseMove);
+    // window.addEventListener('mousemove', handleMouseMove);
 
     $collection = []
     resetCol(username)
@@ -105,5 +105,5 @@
 
   <CardList></CardList>
 
-  <FixedMenu mousePosition={mouseCoordinates}></FixedMenu>
+  <!-- <FixedMenu mousePosition={mouseCoordinates}></FixedMenu> -->
 </div>

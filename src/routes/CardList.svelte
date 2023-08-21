@@ -3,13 +3,14 @@
 
   import { collection } from "../stores/collection";
   import { deckStore } from "../stores/deckStore";
+  import { onMount } from "svelte";
   import Papa from "papaparse"
-  import { getCardData } from "../api/scryfallApi";
+  import { getCardData, getCardsDataCN } from "../api/scryfallApi";
 	import Dropdown from "./Dropdown.svelte";
 	import Pagination from "./Pagination.svelte";
   import { Card } from "$lib/card";
 
-  import { getCardByNameSet, addCardDb, addToCollection, getCollection } from "../database/dbService";
+  import { getCardByNameSet, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb } from "../database/dbService";
 
   let screenSize;
 
@@ -76,13 +77,17 @@
       let amount = row[1]
       let name = row[3]
       let setCode = row[4]
+      let collectorNumber = row[6]
+      let condition = row[7]
       if (!name || !setCode) continue
       if (setCode.length == 4 && setCode[0] == "V") setCode = setCode.substring(1)
       // check db for card info
-      await getCardByNameSet(name, setCode).then(async card => {
+      await getCardByCollectorNumberSet(collectorNumber, setCode).then(async card => {
+      // await getCardByNameSet(name, setCode).then(async card => {
         // get data from scryfall
         if (card == null) {
-          await getCardData(name, setCode).then(async cardScry => {
+          await getCardsDataCN(collectorNumber, setCode, condition).then(async cardScry => {
+          //await getCardData(name, setCode, condition).then(async cardScry => {
             if (cardScry.name == "Error") {
               console.log(cardScry.message)
             } else {
@@ -90,7 +95,6 @@
                 cardIds.push(cardScry.scryfallId)
               }
               await addCardDb(cardScry)
-              //addCardToCollection(cardScry)
             }
           })
         } else {

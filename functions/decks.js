@@ -12,34 +12,54 @@ export async function handler(event, context) {
       const database = (await clientPromise).db("Card-Collection-Svelte");
       const collection = database.collection("decks");
 
-      const cursor = await collection.aggregate([
-        { $match: {username: event.queryStringParameters.username, name: event.queryStringParameters.title}},
-        { $limit: 1 },
-        { $project: {_id: 0, cards: 1}},
-        { $unwind: { path: "$cards", preserveNullAndEmptyArrays: true }},
-        { $group: {_id: "$cards", count: {$count: {}}} },
-        { $lookup: {
-          from: "cards",
-          localField: "_id",
-          foreignField: "scryfallId",
-          as: "cardInfo"
-        }},
-        {$project: {cardInfo: {$first: "$cardInfo"}, amount: "$count"}}
-      ])
+      // get all decks
+      if (!event.queryStringParameters.username) {
+        const cursor = await collection.find()
 
-      let deck
-      while (await cursor.hasNext()) {
-        deck = await cursor.next()
-      }
+        let decks = []
+        while (await cursor.hasNext()) {
+          decks.push(await cursor.next())
+        }
 
-      return {
-        statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "*",
-          "Access-Control-Allow-Methods": "*"
-        },
-        body: JSON.stringify(deck)
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*"
+          },
+          body: JSON.stringify(decks)
+        }
+      // get single deck with cards info
+      } else {
+        const cursor = await collection.aggregate([
+          { $match: {username: event.queryStringParameters.username, title: event.queryStringParameters.title}},
+          { $limit: 1 },
+          { $unwind: { path: "$cards", preserveNullAndEmptyArrays: true }},
+          { $group: {_id: "$cards", count: {$count: {}}} },
+          { $lookup: {
+            from: "cards",
+            localField: "_id",
+            foreignField: "scryfallId",
+            as: "cardInfo"
+          }},
+          {$project: {cardInfo: {$first: "$cardInfo"}, amount: "$count"}}
+        ])
+  
+        let deck = []
+        while (await cursor.hasNext()) {
+          deck.push(await cursor.next())
+        }
+  
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*"
+          },
+          body: JSON.stringify(deck)
+        }
       }
     } catch (error) {
       return { statusCode: 501, body: error.toString() }
@@ -53,7 +73,7 @@ export async function handler(event, context) {
     try {
       const database = (await clientPromise).db("Card-Collection-Svelte");
       const collection = await database.collection("decks");
-      var exists = await collection.findOne({name: reqData.title, author: reqData.username})
+      var exists = await collection.findOne({title: reqData.title, username: reqData.username})
       if (exists == null) {
         await collection.insertOne(reqData)
         return {
@@ -75,6 +95,28 @@ export async function handler(event, context) {
           },
           body: JSON.stringify({message: "Deck with this title and username already exists."})
         }
+      }
+    } catch (error) {
+      return { statusCode: 500, body: error.toString() }
+    } finally {
+      (await clientPromise).close()
+    }
+  // DELETE DECK
+  } else if (event.httpMethod == "DELETE") {
+    const clientPromise = await mongoClient.connect();
+    let parameters = event.queryStringParameters
+    try {
+      const database = (await clientPromise).db("Card-Collection-Svelte");
+      const collection = await database.collection("decks");
+      var exists = await collection.findOneAndDelete({title: parameters.title, username: parameters.username})
+      return {
+        statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Methods": "*"
+        },
+        body: JSON.stringify({message: exists.message})
       }
     } catch (error) {
       return { statusCode: 500, body: error.toString() }

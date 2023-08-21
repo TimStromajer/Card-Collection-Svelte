@@ -1,9 +1,9 @@
 // @ts-nocheck
-import { Card } from "./card";
 
 export class Deck {
   fields;
   cardIdCounter;
+  price = 0;
 
   initialFieldNames = ["lands", "0", "1", "2", "3", "4", "5", "6+", "Sideboard"];
 
@@ -15,16 +15,31 @@ export class Deck {
     }
   }
 
+  calculatePrice() {
+    this.price = 0
+    this.fields.forEach(f => {
+      f.cards.forEach(c => {
+        if (c.price != null) {
+          this.price += parseFloat(c.price) 
+        }
+      })
+    })
+  }
+
   addCard(_card) {
     let card = Object.assign({}, _card)
     card.id = this.cardIdCounter;
     this.cardIdCounter += 1;
-    if (card["typeLine"] == "Land") {
+    if (card["typeLine"].startsWith("Land")) {
       this.fields[0].cards.push(card)
     } else if (card["cmc"] < 7) {
       this.fields[card["cmc"] + 1].cards.push(card)
     } else {
-      this.fields[this.fields.length-1].cards.push(card)
+      this.fields[this.fields.length-2].cards.push(card)
+    }
+
+    if (card.price != null) {
+      this.price += parseFloat(card.price) 
     }
   }
 
@@ -32,6 +47,10 @@ export class Deck {
     let field = this.fields.find(f => f.id == column.id)
     let cardIndex = field.cards.findIndex(c => c.id == card.id)
     this.fields[field.id].cards.splice(cardIndex, 1)
+
+    if (card.price != null) {
+      this.price -= parseFloat(card.price) 
+    }
   }
 
   toString() {
@@ -54,6 +73,31 @@ export class Deck {
     }
     return deckText;
   }
+
+  postDeck(title, username, type, mainCard) {
+    let mC;
+    let allCards = []
+    this.fields.forEach(f => {
+      f.cards.forEach(c => {
+        if (c.name == mainCard) {
+          mC = c.imgNUsrl
+        }
+        allCards.push(c.scryfallId)
+      })
+    })
+    let postDeck = new PostDeck(title, username, allCards, type, mC)
+    return postDeck
+  }
+
+  getAllCards() {
+    let allCards = []
+    this.fields.forEach(f => {
+      f.cards.forEach(c => {
+        allCards.push(c)
+      })
+    })
+    return allCards
+  }
 }
 
 class Field {
@@ -64,5 +108,20 @@ class Field {
     this.id = id;
     this.name = name;
     this.cards = cards;
+  }
+}
+
+class PostDeck {
+  title
+  username
+  cards
+  type
+  mainCard
+  constructor(title, username, cards, type, mainCard) {
+    this.title = title;
+    this.username = username;
+    this.cards = cards;
+    this.type = type;
+    this.mainCard = mainCard;
   }
 }

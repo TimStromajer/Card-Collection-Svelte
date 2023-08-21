@@ -38,6 +38,9 @@
   }
 </script>
 
+{#if !cardColumns}
+  <div>Loading...</div>
+{:else}
 <section class="card-columns" 
   use:dndzone={{items:cardColumns, flipDurationMs, type: 'columns'}} 
   on:consider={handleDndConsiderColumns}
@@ -58,6 +61,7 @@
     </div>
   {/each}
 </section>
+{/if}
 
 <style>
   .card-columns {

@@ -35,7 +35,20 @@ export function getCardByNameSet(name, setCode) {
     cardName = cardName.replaceAll(",", '%2C')
     cardName = cardName.replaceAll("'", '%27')
     let url = PUBLIC_FUNCTIONS_URL + "/cards?name=" + name + "&setCode=" + setCode
-    return fetch(url)
+    return fetch(url, {
+            mode: "cors"
+        })
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
+export function getCardByCollectorNumberSet(collectorNumber, setCode) {
+    let url = PUBLIC_FUNCTIONS_URL + "/cards?collectorNumber=" + collectorNumber + "&setCode=" + setCode
+    return fetch(url, {
+            mode: "cors"
+        })
         .then(response => response.json())
         .then(data => {
             return data
@@ -98,6 +111,51 @@ export function addToCollection(username, cards) {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({"username": username, "cards": cards})
         })
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
+//
+// DECK // ----------------------------------------------------------------------
+//
+
+export function getDecks(username) {
+    let url = PUBLIC_FUNCTIONS_URL + "/decks"
+    return fetch(url, {mode: "cors"})
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
+export function getDeck(username, title) {
+    let url = PUBLIC_FUNCTIONS_URL + "/decks?username=" + username + "&title=" + title
+    return fetch(url, {mode: "cors"})
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+} 
+
+export function createDeck(postDeck) {
+    let url = PUBLIC_FUNCTIONS_URL + "/decks"
+    return fetch(url, {
+            method: "POST",
+            mode: "cors",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(postDeck)
+        })
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
+export function deleteDeck(username, title) {
+    let url = PUBLIC_FUNCTIONS_URL + "/decks?username=" + username + "&title=" + title
+    return fetch(url, {method: "DELETE", mode: "cors"})
         .then(response => response.json())
         .then(data => {
             return data

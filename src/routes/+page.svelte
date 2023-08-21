@@ -17,15 +17,19 @@
 
   let username = "slotim"
 
-  deckStore.update(() => 
-    new Deck()
-  )
-
   onMount(() => {
-    // window.addEventListener('mousemove', handleMouseMove);
 
-    $collection = []
-    resetCol(username)
+    if (!$deckStore) {
+      deckStore.update(() => 
+        new Deck()
+      )
+    }
+
+    if (!$collection) {
+      $collection = []
+      resetCol(username)
+    }
+
   });
 
   export function resetCol(username) {
@@ -105,5 +109,4 @@
 
   <CardList></CardList>
 
-  <!-- <FixedMenu mousePosition={mouseCoordinates}></FixedMenu> -->
 </div>

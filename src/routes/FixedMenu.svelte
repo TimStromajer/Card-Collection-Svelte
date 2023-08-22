@@ -14,18 +14,20 @@
 
   export let mousePosition;
 
-  let menuHeight = 40;
+  let innerWidth = 0
+  let innerHeight = 0
+
+  let menuHeight = 6;
 
   let extendEdgeClicked = false
-  let mouseExtendStartPos = 0
-  let extendStartPos = 40;
-  let mouseOverEdgeBool = false
 
   let deckTitle;
   let saveDeckDialog;
   let deckCardNames = []
   let mainCard;
   let deckFormat;
+  let formatList = ["Brawl", "Legacy"]
+  let selectedFormat;
 
   let files;
 
@@ -78,25 +80,21 @@
 
   function expandMenu() {
     if (extendEdgeClicked) {
-      menuHeight = extendStartPos + mouseExtendStartPos - mousePosition.y 
+      menuHeight = innerHeight - mousePosition.y 
     }
   }
   function mouseDownEdge(e) {
     extendEdgeClicked = true
-    mouseExtendStartPos = e.pageY
   }
   function mouseUpEdge(e) {
     extendEdgeClicked = false
-    extendStartPos = menuHeight
   }
   function collapseFixedMenu() {
-    if (menuHeight > 40) {
-      menuHeight = 40;
-      extendStartPos = 40;
+    if (menuHeight > 6) {
+      menuHeight = 6;
     }
     else {
-      menuHeight = 600;
-      extendStartPos = 600;
+      menuHeight = innerHeight * 0.8;
     }
   }
   function focusInEdge(e) {
@@ -136,8 +134,10 @@
   }
 </script>
 
+<svelte:window bind:innerWidth bind:innerHeight />
+
 <div class="fixed-menu" style="--menuHeight: {menuHeight}px">
-  <div role="grid" tabindex="0" class="fixed-card-edge" on:mousedown={mouseDownEdge} on:mouseup={mouseUpEdge} on:focusin={focusInEdge} on:focusout={focusOutEdge}></div>
+  <div role="none" style="--fixed-menu-width: {innerWidth < 1330? innerWidth + 1330 - innerWidth : innerWidth - 20}px" class="fixed-card-edge" on:mousedown={mouseDownEdge} on:mouseup={mouseUpEdge} on:focusin={focusInEdge} on:focusout={focusOutEdge}></div>
   <div class="btns">
     <button class="btn-icon" on:click={() => openSaveDeckDialog()}><IoIosCloudUpload /></button>
     <button class="btn-icon" onclick="document.getElementById('loadBtn').click();"><FaFileExport /></button>
@@ -154,8 +154,14 @@
   <h4>Save your deck</h4>
   <div class="deck-dialog-inputs">
     <input bind:value={deckTitle} placeholder="Deck title">
-    <input bind:value={deckFormat} placeholder="Format">
-    <Dropdown items={deckCardNames} dropDownBtnName={mainCard != undefined && mainCard.length > 0 ? mainCard : "Title card"} bind:checked={mainCard} type="select"></Dropdown>
+    <div class="format-dropdown">
+      <Dropdown items={formatList} dropDownBtnName={selectedFormat != undefined && selectedFormat.length > 0 ? selectedFormat : "Format"} bind:checked={selectedFormat} type="select"></Dropdown>
+    </div>
+    <div class="mainCard-dropdown">
+      <Dropdown items={deckCardNames} dropDownBtnName={mainCard != undefined && mainCard.length > 0 ? mainCard : "Title card"} bind:checked={mainCard} type="select"></Dropdown>
+    </div>
+  </div>
+  <div>
     <button on:click={saveDeck}>Save</button>
   </div>
 </dialog>
@@ -171,11 +177,12 @@
     overflow: auto;
   }
   .btns {
-    position: absolute;
-    top: 0;
+    position: fixed;
     right: inherit;
     display: flex;
     justify-content: flex-end;
+
+    transform: translateY(-22px);
   }
   .btn-icon {
     height: 2em;
@@ -187,7 +194,7 @@
     background-color: black;
     height: 5px;
     cursor: n-resize;
-    width: 100%;
+    width: var(--fixed-menu-width, 100%);
   }
   .save-deck-dialog {
     min-width: 100px;
@@ -195,5 +202,10 @@
   }
   .deck-dialog-inputs {
     display: flex;
+    margin-bottom: 1em;
+  }
+  .format-dropdown {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
   }
 </style>

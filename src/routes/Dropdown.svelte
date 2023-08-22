@@ -40,7 +40,7 @@
       <div class="dropdown-content">
         {#each items as item, i}
           <div>
-            <button on:click={() => rowClick(item, i)}>{item}</button>
+            <button class="select-btn" on:click={() => rowClick(item, i)}>{item}</button>
           </div>
         {/each}
       </div>
@@ -56,9 +56,10 @@
   .dropdown-content {
     position: absolute;
     background-color: #f9f9f9;
-    min-width: 160px;
+    min-width: 100px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 2;
+    z-index: 1;
+    padding: 0;
   }
   .dropbtn {
     background-color: #1d241d;
@@ -67,6 +68,17 @@
     border: none;
     cursor: pointer;
     border-radius: 0.2em;
+    min-width: 5em;
   }
+  .select-btn {
+    width: 100%;
+    height: 100%;
+    text-align: start;
+    border-radius: 0;
+    border-width: 0;
+    padding-bottom: 0.2em;
+    padding-top: 0.2em;
+  }
+  .select-btn:hover {background-color: #a5a5a5}
 </style>
 

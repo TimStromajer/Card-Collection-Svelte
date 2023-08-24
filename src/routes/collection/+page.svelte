@@ -11,19 +11,28 @@
   let errorMessage;
 
   onMount(() => {
-    allUsernames = getUsers();
+    refreshUsers()
   })
+
+  function refreshUsers() {
+    getUsers().then(users => allUsernames = users);
+  }
 
   async function createUser() {
     let response = await addUser(newUsername)
-    console.log(response)
+    refreshUsers()
   }
   function passwordChange() {
+    let numbers = extractIntegersFromString(password)
+    let numbersSum = 0
+    numbers.forEach(n => {
+      numbersSum += n
+    });
     if (password.length == 0) {
       errorMessage = ""
     }
     else if (password.length < 5) {
-      errorMessage = "Password should be at least 5 characters long."
+      errorMessage = "Password must be at least 5 characters long."
     }
     else if (!/\d/.test(password)) {
       errorMessage = "Password must contains at least one number."
@@ -31,18 +40,41 @@
     else if (!password.includes("coin")) {
       errorMessage = "Password must contain the answer to this riddle: What has a head and a tail but no body?"
     }
+    else if (numbersSum != 33) {
+      errorMessage = "Digits in your password must add up to 33"
+    }
+    else if (!password.startsWith("|") || !password.endsWith("|")) {
+      errorMessage = "Your password must be enclosed with a wall."
+    }
     else {
       errorMessage = "Password is OK."
+    }
+  }
+  function extractIntegersFromString(inputString) {
+    const regex = /\d/g; // Regular expression to match integers
+    const matches = inputString.match(regex);
+    
+    if (matches) {
+      return matches.map(match => parseInt(match));
+    } else {
+      return [];
     }
   }
 </script>
 
 <h3>Active collections</h3>
-<ul>
-  <li>
-    <a href="/collection/slotim">slotim</a>
-  </li>
-</ul>
+{#if allUsernames}
+  <ul>
+    {#each allUsernames as user}
+    <li>
+      <a href="/collection/{user.username}">{user.username}</a>
+    </li>
+    {/each}
+  </ul>
+{:else}
+  <div>Loading...</div>
+{/if}
+
 
 <h3>Create your collection</h3>
 <form>

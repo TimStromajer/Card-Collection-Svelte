@@ -7,7 +7,9 @@ import {PUBLIC_FUNCTIONS_URL} from "$env/static/public"
 
 export function getUsers() {
     let url = PUBLIC_FUNCTIONS_URL + "/users"
-    return fetch(url)
+    return fetch(url, {
+            mode: "cors"
+        })
         .then(response => response.json())
         .then(data => {
             return data
@@ -27,8 +29,9 @@ export function addUser(username) {
     let url = PUBLIC_FUNCTIONS_URL + "/users"
     return fetch(url, {
             method: "POST",
+            mode: "cors",
             headers: {"Content-Type": "application/json"},
-            body: {"username": username}
+            body: JSON.stringify({"username": username})
         })
         .then(response => response.json())
         .then(data => {
@@ -86,6 +89,20 @@ export function getCardByScryfallId(scryfallId) {
         })
 }
 
+export function getCardsByCnSetCodePair(pairs) {
+    let url = PUBLIC_FUNCTIONS_URL + "/cards"
+    return fetch(url, {
+            method: "POST",
+            mode: "cors",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({"cnSetCodePairs": pairs})
+        })
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
 export function addCardDb(card) {
     let url = PUBLIC_FUNCTIONS_URL + "/cards"
     return fetch(url, {
@@ -114,6 +131,9 @@ export function getCollection(username) {
 }
 
 export function addToCollection(username, cards) {
+    if (username == "slotim") {
+        return "nope"
+    }
     let url = PUBLIC_FUNCTIONS_URL + "/collection"
     return fetch(url, {
             method: "POST",

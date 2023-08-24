@@ -6,16 +6,18 @@
 
   import { Card } from "$lib/card";
 
-  import { collection } from "../../../stores/collection";
+  import { collection, collectionUsername } from "../../../stores/collection";
   import { deckStore } from "../../../stores/deckStore";
 
   import { getCardData, getCardsDataCN } from "../../../api/scryfallApi";
 	import Dropdown from "../../Dropdown.svelte";
 	import Pagination from "../../Pagination.svelte";
 
-  import { getCardByNameSet, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb } from "../../../database/dbService";
+  import { getCardsByCnSetCodePair, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb } from "../../../database/dbService";
 
   export let username;
+
+  let message = "Loading...";
 
   let screenSize;
 
@@ -41,6 +43,18 @@
 
   // 1825, 1660, 1495, 1330, 1170, 1005, 840, 690, 530, 365
   $: screenSize, screenSizeChange()
+
+  onMount(() => {
+
+    if (!$collection || $collectionUsername != username) {
+      $collectionUsername = username
+      $collection = []
+      resetCol(username)
+    } else if ($collection.length == 0) {
+      message = "This collection has no cards. Upload some!"
+    }
+
+  });
 
   function screenSizeChange() {
     if (screenSize >=  1825) {
@@ -86,11 +100,9 @@
       if (setCode.length == 4 && setCode[0] == "V") setCode = setCode.substring(1)
       // check db for card info
       await getCardByCollectorNumberSet(collectorNumber, setCode).then(async card => {
-      // await getCardByNameSet(name, setCode).then(async card => {
         // get data from scryfall
         if (card == null) {
           await getCardsDataCN(collectorNumber, setCode, condition).then(async cardScry => {
-          //await getCardData(name, setCode, condition).then(async cardScry => {
             if (cardScry.name == "Error") {
               console.log(cardScry.message)
             } else {
@@ -111,11 +123,79 @@
     resetCol(username)
   }
 
+  async function readFileFast() {
+    let csvString = await files[0].text()
+    let data = await parseCSV(csvString)
+    let cnSetPairs = []
+    let allData = []
+    for await (let row of data) {
+      let amount = row[1]
+      let name = row[3]
+      let setCode = row[4]
+      let collectorNumber = row[6]
+      let condition = row[7]
+      if (!name || !setCode) continue
+      if (setCode.length == 4 && setCode[0] == "V") setCode = setCode.substring(1)
+      cnSetPairs.push({"collectorCode": collectorNumber, "setCode": setCode.toLowerCase()})
+      allData.push({"collectorCode": collectorNumber, "setCode": setCode.toLowerCase(), "amount": amount, "condition": condition})
+    }
+    console.log("Read " + cnSetPairs.length + " rows.")
+    let foundCards = []
+    let notFoundCards = []
+    let cardIds = []
+    await getCardsByCnSetCodePair(cnSetPairs).then(ownedCards => {
+      foundCards = ownedCards
+      allData.forEach(async data => {
+        let found = false;
+        await ownedCards.forEach(owned => {
+          if (data.setCode == owned.setCode && data.collectorCode == owned.collectorCode) {
+            for (let i = 0; i<data.amount; i++) {
+              cardIds.push(owned.scryfallId)
+            }
+            found = true
+          }
+        })
+        if (!found) {
+          notFoundCards.push(data)
+        }
+      })
+    })
+    console.log(foundCards.length + "/" + (foundCards.length + notFoundCards.length) + " cards already in database. Gathering the rest.")
+    let count = 0
+    await notFoundCards.forEach(async notFound => {
+      await getCardsDataCN(notFound.collectorCode, notFound.setCode, notFound.condition).then(async cardScry => {
+        if (cardScry.name == "Error") {
+          console.log(cardScry.message)
+        } else {
+          for (let i = 0; i<notFound.amount; i++) {
+            cardIds.push(cardScry.scryfallId)
+          }
+          await addCardDb(cardScry)
+        }
+      })
+      count += 1
+      console.log(count + "/" + notFoundCards.length)
+      if (count == notFoundCards.length) {
+        console.log(cardIds)
+        await addToCollection(username, cardIds)
+        resetCol(username)
+      }
+    })
+    if (notFoundCards.length == 0) {
+      await addToCollection(username, cardIds)
+      resetCol(username)
+    }
+  }
+
   export function resetCol(username) {
     $collection = []
     var itemsProcessed = 0;
+    message = "Loading..."
     getCollection(username).then(col => {
-      if (col) {
+      if (!col || col.length == 0) {
+        message = "This collection has no cards. Upload some!"
+      }
+      else if (col) {
         col.forEach(item => {
           let card = item.cardInfo
           $collection.push(new Card(card.name, card.setCode, card.collectorCode, card.printing,
@@ -127,6 +207,7 @@
             $collection = $collection
           }
         });
+        message = ""
         return collection
       }
     })
@@ -245,8 +326,8 @@
 <Dropdown items={colorsFilterNames} dropDownBtnName="Colors" bind:checked={colorsFilter} type="checkbox"></Dropdown>
 <Dropdown items={cmcFilterNames} dropDownBtnName="CMC" bind:checked={cmcFilter} type="checkbox"></Dropdown>
 
-{#if !shownCards}
-  <div>Loading...</div>
+{#if message && message.length > 0}
+  <p>{message}</p>
 {:else}
   <div class="card-list">
     {#each shownCards as card}
@@ -263,9 +344,9 @@
 <Pagination pageSize={cardsPerPage} count={filteredCards.length} on:pageChange={onPageChange} bind:page={currentPage}></Pagination>
 
 <span>Upload cards to the collection: </span>
-<input type="file" bind:files class="input-files" disabled>
+<input type="file" bind:files class="input-files">
 {#if files && files[0]}
-  <button on:click={() => readFile()}>Upload</button>
+  <button on:click={() => readFileFast()}>Upload</button>
 {/if}
 
 <style>

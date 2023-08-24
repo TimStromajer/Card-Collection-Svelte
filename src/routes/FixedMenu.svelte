@@ -124,6 +124,7 @@
   }
   async function openSaveDeckDialog() {
     let cs = await $deckStore.getAllCards()
+    deckCardNames = []
     cs.forEach(c => {
       deckCardNames.push(c.name)
     });

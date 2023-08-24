@@ -75,22 +75,53 @@ export async function handler(event, context) {
   } else if (event.httpMethod == "POST") {
     const clientPromise = await mongoClient.connect();
     let reqData = JSON.parse(event.body)
+    console.log(reqData)
     try {
       const database = (await clientPromise).db("Card-Collection-Svelte");
       const collection = await database.collection("cards");
-      var exists = await collection.findOne({scryfallId: reqData.scryfallId})
-      if (exists == null) {
-        await collection.insertOne(reqData)
-        return {
-          statusCode: 200,
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Allow-Methods": "*"
-          },
-          body: JSON.stringify({message: "added :)"})
+      // if posting cards by scryfallId
+      if (reqData.scryfallId != null) {
+        var exists = await collection.findOne({scryfallId: reqData.scryfallId})
+        if (exists == null) {
+          await collection.insertOne(reqData)
+          return {
+            statusCode: 200,
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Headers": "*",
+              "Access-Control-Allow-Methods": "*"
+            },
+            body: JSON.stringify({message: "added :)"})
+          }
+        } else {
+          return {
+            statusCode: 200,
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Headers": "*",
+              "Access-Control-Allow-Methods": "*"
+            },
+            body: JSON.stringify({message: "Card already exists."})
+          }
         }
-      } else {
+      }
+      // if getting cards by collector numbers and set codes pairs
+      else if (reqData.cnSetCodePairs != null) {
+        const cursor = await collection.find({
+          $expr:{
+              $in:[
+                  {
+                      "collectorCode":"$collectorCode",
+                      "setCode":"$setCode"
+                  },
+                  reqData.cnSetCodePairs
+              ]
+          }
+        })
+        let cards = []
+        while (await cursor.hasNext()) {
+          cards.push(await cursor.next())
+        }
         return {
           statusCode: 200,
           headers: {
@@ -98,7 +129,7 @@ export async function handler(event, context) {
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Methods": "*"
           },
-          body: JSON.stringify({message: "Card already exists."})
+          body: JSON.stringify(cards)
         }
       }
     } catch (error) {

@@ -14,7 +14,7 @@ export async function handler(event, context) {
         { $match: {username: event.queryStringParameters.username}},
         { $limit: 1 },
         { $project: {_id: 0, cards: 1}},
-        { $unwind: { path: "$cards", preserveNullAndEmptyArrays: true }},
+        { $unwind: { path: "$cards", preserveNullAndEmptyArrays: false }},
         { $group: {_id: "$cards", count: {$count: {}}} },
         { $lookup: {
           from: "cards",

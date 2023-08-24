@@ -1,20 +1,23 @@
 <script>
 // @ts-nocheck
 
-  import { collection } from "../stores/collection";
-  import { deckStore } from "../stores/deckStore";
   import { onMount } from "svelte";
   import Papa from "papaparse"
-  import { getCardData, getCardsDataCN } from "../api/scryfallApi";
-	import Dropdown from "./Dropdown.svelte";
-	import Pagination from "./Pagination.svelte";
+
   import { Card } from "$lib/card";
 
-  import { getCardByNameSet, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb } from "../database/dbService";
+  import { collection } from "../../../stores/collection";
+  import { deckStore } from "../../../stores/deckStore";
+
+  import { getCardData, getCardsDataCN } from "../../../api/scryfallApi";
+	import Dropdown from "../../Dropdown.svelte";
+	import Pagination from "../../Pagination.svelte";
+
+  import { getCardByNameSet, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb } from "../../../database/dbService";
+
+  export let username;
 
   let screenSize;
-
-  let username = "slotim"
 
   let cardsPerPage = 12;
   let currentPage = 0;
@@ -169,8 +172,9 @@
       } else if (a.cmc > b.cmc) {
         return 1
       }
+      // sort alpabetically
       else {
-        return 1
+        return a.name.localeCompare(b.name)
       }
     })
   }

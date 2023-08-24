@@ -10,16 +10,38 @@ export async function handler(event, context) {
     try {
       const database = (await clientPromise).db("Card-Collection-Svelte");
       const collection = database.collection("users");
-      const cursor = await collection.findOne({username: event.queryStringParameters.username})
-      var user = await cursor;
-      return {
-        statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "*",
-          "Access-Control-Allow-Methods": "*"
-        },
-        body: JSON.stringify(user)
+      // if looking for specific user
+      if (event.queryStringParameters.username != null) {
+        const cursor = await collection.findOne({username: event.queryStringParameters.username})
+        var user = await cursor;
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*"
+          },
+          body: JSON.stringify(user)
+        }
+      }
+      // all users
+      else {
+        const cursor = await collection.find()
+
+        let users = []
+        while (await cursor.hasNext()) {
+          users.push(await cursor.next())
+        }
+
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*"
+          },
+          body: JSON.stringify(users)
+        }
       }
     } catch (error) {
       return { statusCode: 501, body: error.toString() }
@@ -58,7 +80,7 @@ export async function handler(event, context) {
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Methods": "*"
           },
-          body: JSON.stringify({message: "User already exists."})
+          body: JSON.stringify({error: true, message: "User already exists."})
         }
       }
     } catch (error) {

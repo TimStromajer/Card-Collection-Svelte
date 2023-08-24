@@ -16,7 +16,8 @@
 </script>
   
 <nav>
-  <a href="/">My collection</a>
+  <a href="/">Home</a>
+  <a href="/collection">Collections</a>
   <a href="/decks">Decks</a>
 </nav>
 

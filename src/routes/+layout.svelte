@@ -23,8 +23,27 @@
   <a href="/decks">Decks</a>
 </nav>
 
-<slot />
+<div class="content">
+  <slot class="slot"/>
+</div>
 
 <div>
   <FixedMenu mousePosition={mouseCoord}></FixedMenu>
 </div>
+
+<style>
+  nav {
+    padding: 1em;
+    background-color: rgb(4, 27, 2);
+  }
+
+  nav a {
+    color: rgb(72, 197, 83);
+    margin-right: 1em;
+  }
+
+  .content {
+    margin-left: 1em;
+    margin-right: 1em;
+  }
+</style>

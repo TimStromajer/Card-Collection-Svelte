@@ -28,6 +28,8 @@
     numbers.forEach(n => {
       numbersSum += n
     });
+    let firstHalf = password.substring(0, password.length/2)
+    let secondHalf = password.split("").reverse().join("").substring(0, password.length/2)
     if (password.length == 0) {
       errorMessage = ""
     }
@@ -45,6 +47,9 @@
     }
     else if (!password.startsWith("|") || !password.endsWith("|")) {
       errorMessage = "Your password must be enclosed with a wall."
+    }
+    else if (firstHalf != secondHalf) {
+      errorMessage = "Your password must be balanced."
     }
     else {
       errorMessage = "Password is OK."
@@ -79,7 +84,7 @@
 <h3>Create your collection</h3>
 <form>
   <input bind:value={newUsername} placeholder="username"/>
-  <input type="password" bind:value={password} on:keyup={() => passwordChange()} placeholder="password"/>
+  <input type="text" bind:value={password} on:keyup={() => passwordChange()} placeholder="password"/>
   <button on:click={() => createUser()}>Create</button>
   {#if errorMessage}
   <p class="error-msg">

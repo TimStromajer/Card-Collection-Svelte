@@ -3,15 +3,17 @@
 
   import { onMount, onDestroy } from 'svelte';
   import FixedMenu from './FixedMenu.svelte';
+  import { mouseCoordinates } from '../stores/userInfo';
 
-  let mouseCoordinates = {x: null, y: null};
+  export let mouseCoord = {x: null, y: null};
 
   onMount(() => {
     window.addEventListener('mousemove', handleMouseMove);
   });
 
   function handleMouseMove(event) {
-    mouseCoordinates = { x: event.clientX, y: event.clientY };
+    mouseCoord = { x: event.clientX, y: event.clientY };
+    $mouseCoordinates = mouseCoord
   }
 </script>
   
@@ -24,5 +26,5 @@
 <slot />
 
 <div>
-  <FixedMenu mousePosition={mouseCoordinates}></FixedMenu>
+  <FixedMenu mousePosition={mouseCoord}></FixedMenu>
 </div>

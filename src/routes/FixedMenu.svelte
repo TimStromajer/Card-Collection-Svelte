@@ -2,11 +2,15 @@
 // @ts-nocheck
 
   import { onMount } from "svelte";
+
   import CardColumns from "./CardColumns.svelte";
+  import Dropdown from "./Dropdown.svelte";
+
   import { deckStore } from '../stores/deckStore';
+  import { collectionUsername } from "../stores/collection";
+
 	import { Deck } from "$lib/deck";
   import { getCardByNameSet, getCardByName, createDeck } from "../database/dbService";
-	import Dropdown from "./Dropdown.svelte";
   
   import FaFileImport from 'svelte-icons/fa/FaFileImport.svelte'
   import FaFileExport from 'svelte-icons/fa/FaFileExport.svelte'
@@ -29,9 +33,13 @@
   let formatList = ["Brawl", "Legacy"]
   let selectedFormat;
 
+  let username;
+
   let files;
 
   $: mousePosition, expandMenu();
+
+  $: username = $collectionUsername
 
   onMount(() => {
 		saveDeckDialog = document.getElementById('save-deck-dialog');
@@ -104,7 +112,7 @@
   }
 
   async function saveDeck() {
-    let d = await $deckStore.postDeck(deckTitle, "slotim", deckFormat, mainCard)
+    let d = await $deckStore.postDeck(deckTitle, username, deckFormat, mainCard)
     if (!deckTitle || !deckFormat || !mainCard) {
       return
     }

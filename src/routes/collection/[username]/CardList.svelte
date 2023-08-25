@@ -12,14 +12,19 @@
   import { getCardData, getCardsDataCN } from "../../../api/scryfallApi";
 	import Dropdown from "../../Dropdown.svelte";
 	import Pagination from "../../Pagination.svelte";
+  import BigCard from "./BigCard.svelte";
 
   import { getCardsByCnSetCodePair, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb } from "../../../database/dbService";
+  import { collectionData } from "../../../database/database";
 
   export let username;
 
   let message = "Loading...";
 
   let screenSize;
+
+  let hoverCard;
+  let showBigCard;
 
   let cardsPerPage = 12;
   let currentPage = 0;
@@ -187,7 +192,7 @@
     }
   }
 
-  export function resetCol(username) {
+  async function resetCol(username) {
     $collection = []
     var itemsProcessed = 0;
     message = "Loading..."
@@ -318,6 +323,21 @@
     let newPage = event.detail.page
     shownCards = filteredCards.slice(newPage * cardsPerPage, newPage * cardsPerPage + cardsPerPage)
   }
+
+  function mouseEnterCard(card) {
+    setTimeout(showBiggerCard, 1000, card);
+    hoverCard = card
+  }
+  function mouseLeaveCard(card) {
+    hoverCard = null
+    showBigCard = false
+  }
+  function showBiggerCard(card) {
+    if (hoverCard && card.scryfallId == hoverCard.scryfallId) {
+      showBigCard = true
+    } else {
+    }
+  }
 </script>
 
 <svelte:window bind:innerWidth={screenSize} />
@@ -333,7 +353,7 @@
     {#each shownCards as card}
       <div class="card">
         <button class="add-card-btn" on:click={() => addCard(card)}>
-          <img src="{card.imgNUsrl}" alt="{card.name}"/>
+          <img src="{card.imgNUsrl}" alt="{card.name}" on:mouseenter={() => mouseEnterCard(card)} on:mouseleave={() => mouseLeaveCard(card)}/>
           <div>{card.amount}</div>
         </button>
       </div>
@@ -347,6 +367,10 @@
 <input type="file" bind:files class="input-files">
 {#if files && files[0]}
   <button on:click={() => readFileFast()}>Upload</button>
+{/if}
+
+{#if showBigCard}
+  <BigCard card={hoverCard}></BigCard>
 {/if}
 
 <style>

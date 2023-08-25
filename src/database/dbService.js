@@ -184,6 +184,7 @@ export function createDeck(postDeck) {
 }
 
 export function deleteDeck(username, title) {
+    if (username == "slotim") return "nope"
     let url = PUBLIC_FUNCTIONS_URL + "/decks?username=" + username + "&title=" + title
     return fetch(url, {method: "DELETE", mode: "cors"})
         .then(response => response.json())

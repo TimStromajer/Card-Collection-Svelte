@@ -102,7 +102,11 @@
       menuHeight = 6;
     }
     else {
-      menuHeight = innerHeight * 0.8;
+      if (innerWidth < 830) {
+        menuHeight = innerHeight * 0.6;
+      } else {
+        menuHeight = innerHeight * 0.8;
+      }
     }
   }
   function focusInEdge(e) {
@@ -146,7 +150,12 @@
 <svelte:window bind:innerWidth bind:innerHeight />
 
 <div class="fixed-menu" style="--menuHeight: {menuHeight}px">
-  <div role="none" style="--fixed-menu-width: {innerWidth < 1330? innerWidth + 1330 - innerWidth : innerWidth - 20}px" class="fixed-card-edge" on:mousedown={mouseDownEdge} on:mouseup={mouseUpEdge} on:focusin={focusInEdge} on:focusout={focusOutEdge}></div>
+  <div role="none" style="--fixed-menu-width: {innerWidth < 1330? innerWidth + 1330 - innerWidth : innerWidth - 20}px" 
+    class="fixed-card-edge"
+    on:mousedown={mouseDownEdge} 
+    on:mouseup={mouseUpEdge} 
+    on:focusin={focusInEdge} 
+    on:focusout={focusOutEdge}></div>
   <div class="btns">
     <button class="btn-icon" on:click={() => openSaveDeckDialog()}><IoIosCloudUpload /></button>
     <button class="btn-icon" onclick="document.getElementById('loadBtn').click();"><FaFileExport /></button>
@@ -177,10 +186,12 @@
     <div>
       Approximate value: {$deckStore.price} $
     </div>
+    <br/>
   {/if}
   <div>
     <button on:click={saveDeck}>Save</button>
   </div>
+  <button class="dialog-cancel-btn" on:click={() => saveDeckDialog.close()}>X</button>
 </dialog>
 
 <style>
@@ -221,8 +232,18 @@
     display: flex;
     margin-bottom: 1em;
   }
+  .dialog-cancel-btn {
+    width: 2em;
+    height: 2em;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
   .format-dropdown {
     padding-left: 0.5em;
     padding-right: 0.5em;
+  }
+  .collapse-fixed-card-btn {
+    width: 3em;
   }
 </style>

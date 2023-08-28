@@ -5,6 +5,7 @@
   import Papa from "papaparse"
 
   import { Card } from "$lib/card";
+  import { parseFile } from "$lib/fileParser";
 
   import { collection, collectionUsername } from "../../../stores/collection";
   import { deckStore } from "../../../stores/deckStore";
@@ -14,7 +15,7 @@
 	import Pagination from "../../Pagination.svelte";
   import BigCard from "./BigCard.svelte";
 
-  import { getCardsByCnSetCodePair, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb } from "../../../database/dbService";
+  import { getCardsByCnSetCodePair, getCardByCollectorNumberSet, addToCollection, getCollection, addCardDb, addCardsDb } from "../../../database/dbService";
   import { collectionData } from "../../../database/database";
 
   export let username;
@@ -49,7 +50,7 @@
   // 1825, 1660, 1495, 1330, 1170, 1005, 840, 690, 530, 365
   $: screenSize, screenSizeChange()
 
-  onMount(() => {
+  onMount(async () => {
 
     if (!$collection || $collectionUsername != username) {
       $collectionUsername = username
@@ -57,6 +58,9 @@
       resetCol(username)
     } else if ($collection.length == 0) {
       message = "This collection has no cards. Upload some!"
+    } else if ($collection && $collectionUsername == username) {
+      await filterCollection()
+      message = ""
     }
 
   });
@@ -90,24 +94,17 @@
 
   async function readFile() {
     let csvString = await files[0].text()
-    let data = await parseCSV(csvString)
+    let data = await parseFile(csvString)
     let cardIds = []
     let index = 1
     for await (let row of data) {
       console.log("working on card " + index + "/" + data.length)
       index += 1
-      let amount = row[1]
-      let name = row[3]
-      let setCode = row[4]
-      let collectorNumber = row[6]
-      let condition = row[7]
-      if (!name || !setCode) continue
-      if (setCode.length == 4 && setCode[0] == "V") setCode = setCode.substring(1)
       // check db for card info
-      await getCardByCollectorNumberSet(collectorNumber, setCode).then(async card => {
+      await getCardByCollectorNumberSet(row.cn, row.setCode).then(async card => {
         // get data from scryfall
         if (card == null) {
-          await getCardsDataCN(collectorNumber, setCode, condition).then(async cardScry => {
+          await getCardsDataCN(row.cn, row.setCode, row.printing).then(async cardScry => {
             if (cardScry.name == "Error") {
               console.log(cardScry.message)
             } else {
@@ -130,19 +127,10 @@
 
   async function readFileFast() {
     let csvString = await files[0].text()
-    let data = await parseCSV(csvString)
+    let data = await parseFile(csvString)
     let cnSetPairs = []
-    let allData = []
     for await (let row of data) {
-      let amount = row[1]
-      let name = row[3]
-      let setCode = row[4]
-      let collectorNumber = row[6]
-      let condition = row[7]
-      if (!name || !setCode) continue
-      if (setCode.length == 4 && setCode[0] == "V") setCode = setCode.substring(1)
-      cnSetPairs.push({"collectorCode": collectorNumber, "setCode": setCode.toLowerCase()})
-      allData.push({"collectorCode": collectorNumber, "setCode": setCode.toLowerCase(), "amount": amount, "condition": condition})
+      cnSetPairs.push({"collectorCode": row["cn"], "setCode": row["setCode"]})
     }
     console.log("Read " + cnSetPairs.length + " rows.")
     let foundCards = []
@@ -150,43 +138,45 @@
     let cardIds = []
     await getCardsByCnSetCodePair(cnSetPairs).then(ownedCards => {
       foundCards = ownedCards
-      allData.forEach(async data => {
+      data.forEach(async d => {
         let found = false;
         await ownedCards.forEach(owned => {
-          if (data.setCode == owned.setCode && data.collectorCode == owned.collectorCode) {
-            for (let i = 0; i<data.amount; i++) {
+          if (d.setCode == owned.setCode && d.collectorCode == owned.collectorCode) {
+            for (let i = 0; i<d.amount; i++) {
               cardIds.push(owned.scryfallId)
             }
             found = true
           }
         })
         if (!found) {
-          notFoundCards.push(data)
+          notFoundCards.push(d)
         }
       })
     })
     console.log(foundCards.length + "/" + (foundCards.length + notFoundCards.length) + " cards already in database. Gathering the rest.")
     let count = 0
+    let cardsInfo = []
     await notFoundCards.forEach(async notFound => {
-      await getCardsDataCN(notFound.collectorCode, notFound.setCode, notFound.condition).then(async cardScry => {
+      await getCardsDataCN(notFound.cn, notFound.setCode, notFound.printing).then(async cardScry => {
         if (cardScry.name == "Error") {
           console.log(cardScry.message)
         } else {
           for (let i = 0; i<notFound.amount; i++) {
             cardIds.push(cardScry.scryfallId)
           }
-          await addCardDb(cardScry)
+          cardsInfo.push(cardScry)
         }
       })
       count += 1
       console.log(count + "/" + notFoundCards.length)
       if (count == notFoundCards.length) {
-        console.log(cardIds)
+        await addCardsDb(cardsInfo)
         await addToCollection(username, cardIds)
         resetCol(username)
       }
     })
     if (notFoundCards.length == 0) {
+      console.log("Adding everything to collection.")
       await addToCollection(username, cardIds)
       resetCol(username)
     }
@@ -263,19 +253,6 @@
         return a.name.localeCompare(b.name)
       }
     })
-  }
-
-  async function parseCSV(csvString) {
-    var read = await Papa.parse(csvString);
-    if (read.errors.length > 0) {
-      return
-    }
-    let csv = read.data
-    if (csv[0].length == 1) {
-      csv.shift()
-    }
-    csv.shift()
-    return csv;
   }
 
   function textFilterChange() {

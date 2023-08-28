@@ -75,7 +75,6 @@ export async function handler(event, context) {
   } else if (event.httpMethod == "POST") {
     const clientPromise = await mongoClient.connect();
     let reqData = JSON.parse(event.body)
-    console.log(reqData)
     try {
       const database = (await clientPromise).db("Card-Collection-Svelte");
       const collection = await database.collection("cards");
@@ -103,6 +102,19 @@ export async function handler(event, context) {
             },
             body: JSON.stringify({message: "Card already exists."})
           }
+        }
+      }
+      // if posting many cards
+      if (reqData.cards != null) {
+        await collection.insertMany(reqData.cards)
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*"
+          },
+          body: JSON.stringify({message: "added :)"})
         }
       }
       // if getting cards by collector numbers and set codes pairs

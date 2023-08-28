@@ -47,7 +47,7 @@
   on:finalize={handleDndFinalizeColumns}>
   {#each cardColumns as cardColumn(cardColumn.id) }
     <div class="column">
-      <h4 class="column-title">{cardColumn.name}</h4>
+      <h4 class="column-title">{cardColumn.name} ({cardColumn.cards.length})</h4>
       <div class="card-column" style:--columnHeight={getDeckDropListStyle(cardColumn)}
         use:dndzone={{items:cardColumn.cards, flipDurationMs}}
         on:consider={(e) => handleDndConsiderCards(cardColumn.id, e)} 

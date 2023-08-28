@@ -73,7 +73,7 @@ export function getCardByName(name) {
     cardName = cardName.replaceAll(",", '%2C')
     cardName = cardName.replaceAll("'", '%27')
     let url = PUBLIC_FUNCTIONS_URL + "/cards?name=" + name
-    return fetch(url)
+    return fetch(url, {mode: "cors"})
         .then(response => response.json())
         .then(data => {
             return data
@@ -82,7 +82,9 @@ export function getCardByName(name) {
 
 export function getCardByScryfallId(scryfallId) {
     let url = PUBLIC_FUNCTIONS_URL + "/cards?scryfallId=" + scryfallId
-        return fetch(url)
+        return fetch(url, {
+                mode: "cors"
+            })
         .then(response => response.json())
         .then(data => {
             return data
@@ -117,6 +119,20 @@ export function addCardDb(card) {
         })
 }
 
+export function addCardsDb(cards) {
+    let url = PUBLIC_FUNCTIONS_URL + "/cards"
+    return fetch(url, {
+            method: "POST",
+            mode: "cors",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({"cards": cards})
+        })
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
 //
 // COLLECTION // ----------------------------------------------------------------------
 //
@@ -131,9 +147,7 @@ export function getCollection(username) {
 }
 
 export function addToCollection(username, cards) {
-    if (username == "slotim") {
-        return "nope"
-    }
+    if (username == "slotim") return "nope"
     let url = PUBLIC_FUNCTIONS_URL + "/collection"
     return fetch(url, {
             method: "POST",

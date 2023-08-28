@@ -37,7 +37,7 @@ export function getCardData(cardNameOrig, setCode, condition) {
   });
 }
 
-export function getCardsDataCN(collectorNumber, setCode, condition) {
+export function getCardsDataCN(collectorNumber, setCode, printing) {
   setCode = setCode.toLowerCase()
   let url = "https://api.scryfall.com/cards/" + setCode + "/" + collectorNumber
 
@@ -49,9 +49,9 @@ export function getCardsDataCN(collectorNumber, setCode, condition) {
     }
 
     let price
-    if (condition == "normal") {
+    if (printing == "Normal") {
       price = data["prices"]["usd"]
-    } else if (condition == "foil") {
+    } else if (printing == "Foil") {
       price = data["prices"]["usd_foil"]
     }
 

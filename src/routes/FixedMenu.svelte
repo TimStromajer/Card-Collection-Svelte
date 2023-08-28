@@ -170,6 +170,14 @@
       <Dropdown items={deckCardNames} dropDownBtnName={mainCard != undefined && mainCard.length > 0 ? mainCard : "Title card"} bind:checked={mainCard} type="select"></Dropdown>
     </div>
   </div>
+  {#if $deckStore}
+    <div class="statistics">
+      Your deck contains {$deckStore.getAllCards().length} cards.
+    </div>
+    <div>
+      Approximate value: {$deckStore.price} $
+    </div>
+  {/if}
   <div>
     <button on:click={saveDeck}>Save</button>
   </div>

@@ -42,7 +42,12 @@
   let cmcFilter = [false, false, false, false, false, false, false];
   let cmcFilterNames = ["0", "1", "2", "3", "4", "5", "6+"]
   let cmcFilterValues = [0, 1, 2, 3, 4, 5, 6]
-  $: cmcFilter, colorsFilterChange()
+  $: cmcFilter, cmcFilterChange()
+
+  let rarityFilter;
+  let rarityFilterNames = ["Common", "Uncommon", "Rare", "Mythic"]
+  let rarityFilterValues = ["C", "U", "R", "M"]
+  $: rarityFilter, raratyFilterChange()
 
   let files;
   let filterText;
@@ -74,11 +79,11 @@
       cardsPerPage = 18
     } else if (screenSize >=  1330) {
       cardsPerPage = 16
-    } else if (screenSize >= 1170) {
+    } else if (screenSize >= 1180) {
       cardsPerPage = 14
-    } else if (screenSize >= 1005) {
+    } else if (screenSize >= 1015) {
       cardsPerPage = 12
-    } else if (screenSize >= 840) {
+    } else if (screenSize >= 855) {
       cardsPerPage = 10
     } else if (screenSize >= 690) {
       cardsPerPage = 8
@@ -259,7 +264,17 @@
     filterCollection()
   }
 
+  function cmcFilterChange() {
+    if (!$collection) return
+    filterCollection()
+  }
+
   function colorsFilterChange() {
+    if (!$collection) return
+    filterCollection()
+  }
+
+  function raratyFilterChange() {
     if (!$collection) return
     filterCollection()
   }
@@ -287,7 +302,11 @@
           if (cmcNum > 0 && (isCmcFiltered == false || isCmcFiltered == undefined && cmcFilter[6] == false)) {
             return false;
           } else {
-            return true
+            if (rarityFilter != null && rarityFilter.length > 0 && card.rarity.toLowerCase() != rarityFilter.toLowerCase()) {
+              return false
+            } else {
+              return true
+            }
           }
         }
       }
@@ -319,9 +338,18 @@
 
 <svelte:window bind:innerWidth={screenSize} />
 
-<input class="filter-text" bind:value={filterText} placeholder="filter by text" on:keyup={() => textFilterChange()} />
-<Dropdown items={colorsFilterNames} dropDownBtnName="Colors" bind:checked={colorsFilter} type="checkbox"></Dropdown>
-<Dropdown items={cmcFilterNames} dropDownBtnName="CMC" bind:checked={cmcFilter} type="checkbox"></Dropdown>
+<div class="filters">
+  <input class="filter-item" bind:value={filterText} placeholder="filter by text" on:keyup={() => textFilterChange()} />
+  <div class="filter-item">
+    <Dropdown items={colorsFilterNames} dropDownBtnName="Colors" bind:checked={colorsFilter} type="checkbox"></Dropdown>
+  </div>
+  <div class="filter-item">
+    <Dropdown items={cmcFilterNames} dropDownBtnName="CMC" bind:checked={cmcFilter} type="checkbox"></Dropdown>
+  </div>
+  <div class="filter-item">
+    <Dropdown items={rarityFilterNames} dropDownBtnName="Rarity" bind:checked={rarityFilter} type="select"></Dropdown>
+  </div>
+</div>
 
 {#if message && message.length > 0}
   <p>{message}</p>
@@ -377,8 +405,13 @@
     border-radius: 1em;
     cursor: copy;
   }
-  .filter-text {
+  .filters {
     margin: 0.5em;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .filter-item {
+    margin: 0.2em;
   }
   .input-files {
     margin-top: 16px;

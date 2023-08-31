@@ -15,10 +15,13 @@
     checked = item
     dropDownClick()
   }
+  function focusOut() {
+    dropDowmOpen = false;
+  }
 </script>
 
 {#if type == "checkbox"}
-  <div class="dropdown">
+  <div class="dropdown" on:focusout={() => focusOut()}>
     <button on:click="{() => dropDownClick()}" class="dropbtn">{dropDownBtnName}</button>
     {#if dropDowmOpen}
       <div class="dropdown-content">
@@ -34,7 +37,7 @@
 {/if}
 
 {#if type == "select"}
-  <div class="dropdown">
+  <div class="dropdown" on:focusout={() => focusOut()}>
     <button on:click="{() => dropDownClick()}" class="dropbtn">{dropDownBtnName}</button>
     {#if dropDowmOpen}
       <div class="dropdown-content">

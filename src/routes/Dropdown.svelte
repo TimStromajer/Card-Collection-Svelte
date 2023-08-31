@@ -7,16 +7,26 @@
   export let type;
 
   let dropDowmOpen = false;
+  let inFocus = false;
+
+  $: checked, inFocus = true
 
   function dropDownClick() {
     dropDowmOpen = !dropDowmOpen
+    inFocus = !inFocus
   }
   function rowClick(item, i) {
     checked = item
     dropDownClick()
   }
   function focusOut() {
-    dropDowmOpen = false;
+    inFocus = false;
+    setTimeout(attempToUnfocus, 100)
+  }
+  function attempToUnfocus() {
+    if (!inFocus) {
+      dropDowmOpen = false;
+    }
   }
 </script>
 

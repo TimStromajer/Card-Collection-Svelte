@@ -321,7 +321,7 @@
   }
 
   function mouseEnterCard(card) {
-    setTimeout(showBiggerCard, 1000, card);
+    setTimeout(showBiggerCard, 800, card);
     hoverCard = card
   }
   function mouseLeaveCard(card) {

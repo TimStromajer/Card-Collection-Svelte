@@ -105,6 +105,20 @@ export function getCardsByCnSetCodePair(pairs) {
         })
 }
 
+export function getCardsByNameSetCodePair(pairs) {
+    let url = PUBLIC_FUNCTIONS_URL + "/cards"
+    return fetch(url, {
+            method: "POST",
+            mode: "cors",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({"nameSetCodePairs": pairs})
+        })
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+}
+
 export function addCardDb(card) {
     let url = PUBLIC_FUNCTIONS_URL + "/cards"
     return fetch(url, {
@@ -147,7 +161,7 @@ export function getCollection(username) {
 }
 
 export function addToCollection(username, cards) {
-    if (username == "slotim") return "nope"
+    //if (username == "slotim") return "nope"
     let url = PUBLIC_FUNCTIONS_URL + "/collection"
     return fetch(url, {
             method: "POST",

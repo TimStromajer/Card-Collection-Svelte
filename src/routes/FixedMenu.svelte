@@ -10,7 +10,7 @@
   import { collectionUsername } from "../stores/collection";
 
 	import { Deck } from "$lib/deck";
-  import { getCardByNameSet, getCardByName, createDeck } from "../database/dbService";
+  import { getCardByNameSet, getCardByName, createDeck, getCardsByNameSetCodePair } from "../database/dbService";
   
   import FaFileImport from 'svelte-icons/fa/FaFileImport.svelte'
   import FaFileExport from 'svelte-icons/fa/FaFileExport.svelte'
@@ -29,8 +29,7 @@
   let saveDeckDialog;
   let deckCardNames = []
   let mainCard;
-  let deckFormat;
-  let formatList = ["Brawl", "Legacy"]
+  let formatList = ["Brawl", "Competitive", "Cube", "Limitless"]
   let selectedFormat;
 
   let username;
@@ -50,6 +49,8 @@
     fileText = await fileText.split("\n")
 
     $deckStore = new Deck()
+    let cnSetPairs = []
+    let notFoundCards = []
 
     for await (let row of fileText) {
       if (row.length == 0 || row.startsWith("Deck") || row.startsWith("Sideboard")) {
@@ -61,29 +62,54 @@
       if (tokens.indexOf("(") > 0) {
         name = tokens.substring(0, tokens.indexOf("(") - 1)
         setCode = tokens.substring(tokens.indexOf("(")+1, tokens.indexOf(")"))
+        cnSetPairs.push({"name": name, "setCode": setCode.toLowerCase()})
       } else {
         name = tokens.substring(" " + 1)
       }
+    }
 
-      if (setCode) {
-        await getCardByNameSet(name, setCode).then(async card => {
+    let foundCards = []
+    await getCardsByNameSetCodePair(cnSetPairs).then(async foundCards_ => {
+      foundCards = foundCards_
+    })
+    
+    await cnSetPairs.forEach(async cardList => {
+      let found = false;
+      foundCards.forEach(foundC => {
+        if (cardList.name == foundC.name && cardList.setCode == foundC.setCode) {
+          found = true
+          $deckStore.addCard(foundC)
+        }
+      })
+      if (!found) {
+        notFoundCards.push(cardList)
+      }
+    })
+    let count = 0
+    await notFoundCards.forEach(async nfc => {
+      count += 1
+      if(nfc.setCode) {
+        await getCardByNameSet(nfc.name, nfc.setCode).then(async card => {
           if (card == null) {
-            console.log(name + " does not exist")
+            console.log(nfc.name + " does not exist")
           } else {
             $deckStore.addCard(card)
           }
         })
       } else {
-        await getCardByName(name).then(async card => {
+        await getCardByName(nfc.name).then(async card => {
           if (card == null) {
-            console.log(name + " does not exist")
+            console.log(nfc.name + " does not exist")
           } else {
             $deckStore.addCard(card)
           }
         })
       }
-      $deckStore = $deckStore
-    }
+      if (count == notFoundCards.length) {
+        $deckStore = $deckStore
+      }
+    })
+    $deckStore = $deckStore
   }
 
   function expandMenu() {
@@ -116,8 +142,8 @@
   }
 
   async function saveDeck() {
-    let d = await $deckStore.postDeck(deckTitle, username, deckFormat, mainCard)
-    if (!deckTitle || !deckFormat || !mainCard) {
+    let d = await $deckStore.postDeck(deckTitle, username, selectedFormat, mainCard)
+    if (!deckTitle || !selectedFormat || !mainCard || selectedFormat.length == 0 || mainCard.length == 0) {
       return
     }
     let msg = await createDeck(d)

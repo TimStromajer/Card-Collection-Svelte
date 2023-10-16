@@ -106,7 +106,14 @@ export async function handler(event, context) {
       }
       // if posting many cards
       if (reqData.cards != null) {
-        await collection.insertMany(reqData.cards)
+        for (let i = 0; i < reqData.cards.length; i++) {
+          console.log(reqData.cards[i])
+          await collection.updateOne(
+            { "setCode": reqData.cards[i].setCode, "collectorCode": reqData.cards[i].collectorCode },
+            { "$set": reqData.cards[i] },
+            {upsert: true}
+          )
+        }
         return {
           statusCode: 200,
           headers: {
@@ -143,6 +150,77 @@ export async function handler(event, context) {
           },
           body: JSON.stringify(cards)
         }
+      }
+      // if getting cards by name and set code pairs
+      else if (reqData.nameSetCodePairs != null) {
+        const cursor = await collection.find({
+          $expr:{
+              $in:[
+                  {
+                      "name":"$name",
+                      "setCode":"$setCode"
+                  },
+                  reqData.nameSetCodePairs
+              ]
+          }
+        })
+        let cards = []
+        while (await cursor.hasNext()) {
+          cards.push(await cursor.next())
+        }
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*"
+          },
+          body: JSON.stringify(cards)
+        }
+      }
+    } catch (error) {
+      return { statusCode: 500, body: error.toString() }
+    } finally {
+      (await clientPromise).close()
+    }
+  } else if (event.httpMethod == "DELETE") {
+    const clientPromise = await mongoClient.connect();
+    try {
+      const database = (await clientPromise).db("Card-Collection-Svelte");
+      const collection = await database.collection("cards");
+      // if posting cards by scryfallId
+      var duplicates = [];
+      const cursor = await collection.aggregate([
+        {
+          $group: {
+            _id: { collectorCode: "$collectorCode", setCode: "$setCode" },
+            dups: { "$addToSet": "$_id" },
+            count: { "$sum": 1 }
+          }
+        },
+        {
+          $match: {
+            count: { "$gt": 1 }
+          }
+        }
+      ])
+      .forEach(function(doc) {
+        doc.dups.shift();      // First element skipped for deleting
+        doc.dups.forEach( function(dupId){ 
+            duplicates.push(dupId);   // Getting all duplicate ids
+            }
+        )
+      })
+      // Remove all duplicates in one go
+      await collection.deleteMany({_id:{$in: duplicates}})
+      return {
+        statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Methods": "*"
+        },
+        body: JSON.stringify(duplicates)
       }
     } catch (error) {
       return { statusCode: 500, body: error.toString() }

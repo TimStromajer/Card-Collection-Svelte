@@ -55,7 +55,7 @@
           <div>{deck.title}</div>
           <button on:click={() => loadDeck(deck)}>Load</button>
           <button on:click={() => downloadDeck(deck)}>Download</button>
-          <button on:click={() => deleteDeckBtnClick(deck)} disabled>Delete</button>
+          <button on:click={() => deleteDeckBtnClick(deck)}>Delete</button>
         </button>
       </div>
     {/each}

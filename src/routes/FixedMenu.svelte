@@ -76,7 +76,7 @@
     await cnSetPairs.forEach(async cardList => {
       let found = false;
       foundCards.forEach(foundC => {
-        if (cardList.name == foundC.name && cardList.setCode == foundC.setCode) {
+        if (found == false && cardList.name == foundC.name && cardList.setCode == foundC.setCode) {
           found = true
           $deckStore.addCard(foundC)
         }

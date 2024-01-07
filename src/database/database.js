@@ -4,24 +4,6 @@ import { Card } from '$lib/card';
 
 import { getCollection } from './dbService';
 
-// export let conn = (async () => {
-//   // URI examples: 'neo4j://localhost', 'neo4j+s://xxx.databases.neo4j.io'
-//   const URI = 'neo4j+s://da430251.databases.neo4j.io'
-//   const USER = 'neo4j'
-//   const PASSWORD = '9TtyBFbKfNAfIwi5tL27qw_T7Phn5zb5r5GVWt4Qztk'
-//   let driver
-
-//   try {
-//     console.log("--------------------")
-//     driver = neo4j.Driver(URI,  neo4j.auth.basic(USER, PASSWORD))
-//     const serverInfo = await driver.getServerInfo()
-//     console.log('Connection established')
-//     console.log(serverInfo)
-//   } catch(err) {
-//     console.log(`Connection error\n${err}\nCause: ${err.cause}`)
-//   }
-// })();
-
 export function resetCollection(username) {
   let collection = []
   getCollection(username).then(col => {
